@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.pipeline import Pipeline
 import joblib
 
 
@@ -77,22 +78,29 @@ def run_prep(data_path, target_col="Diabetes_012"):
     save_preprocessor(preprocessor)
 
 
-def clean_health_data(df):
-    """Wrapper for tests → uses clean_data()"""
-    return clean_data(df)
+def clean_health_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Basic cleaning: remove duplicates, handle NaN, strip column names.
+    """
+    df = df.copy()
+    df.columns = df.columns.str.strip()
+    df = df.drop_duplicates()
+    df = df.dropna()
+    return df
 
 
-def build_preprocessor(numerical, categorical):
-    df = pd.DataFrame(
-        {
-            "Age": [25, 35, 45],
-            "BMI": [22.5, 27.8, 31.2],
-            "Diabetic": ["Yes", "No", "Yes"],
-            "Target": ["Healthy", "Pre-Diabetic", "Diabetic"],
-        }
+def build_preprocessor(numerical_cols):
+    """
+    Returns a scikit-learn ColumnTransformer with StandardScaler.
+    """
+    numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_transformer, numerical_cols),
+        ]
     )
 
-    preprocessor, X, y = create_preprocessor(df, "Target")
     return preprocessor
 
 
