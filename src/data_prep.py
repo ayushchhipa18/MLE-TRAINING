@@ -89,20 +89,21 @@ def clean_health_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def build_preprocessor(numerical_cols):
-    """
-    Returns a scikit-learn ColumnTransformer with StandardScaler.
-    """
-    numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
+def build_preprocessor(numerical_cols, categorical_cols=None):
+    transformers = []
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("num", numeric_transformer, numerical_cols),
-        ]
-    )
+    # Numeric columns
+    if numerical_cols:
+        numeric_transformer = Pipeline(steps=[("scaler", StandardScaler())])
+        transformers.append(("num", numeric_transformer, numerical_cols))
 
+    # Categorical columns
+    if categorical_cols:
+        cat_transformer = Pipeline(steps=[("onehot", OneHotEncoder(handle_unknown="ignore"))])
+        transformers.append(("cat", cat_transformer, categorical_cols))
+
+    preprocessor = ColumnTransformer(transformers=transformers)
     return preprocessor
-
 
 if __name__ == "__main__":
     run_prep("/home/ayush/ishu/MLE-TRAINING/data/diabetes_cleaned.csv")
