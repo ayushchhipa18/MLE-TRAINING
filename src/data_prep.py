@@ -106,3 +106,4 @@ def build_preprocessor(numerical_cols):
 
 if __name__ == "__main__":
     run_prep("/home/ayush/ishu/MLE-TRAINING/data/diabetes_cleaned.csv")
+
