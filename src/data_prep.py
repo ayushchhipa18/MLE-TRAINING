@@ -4,6 +4,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.pipeline import Pipeline
 import joblib
+import os
 
 
 def load_data(path):
@@ -77,6 +78,18 @@ def run_prep(data_path, target_col="Diabetes_012"):
     # Save the fitted preprocessor as a .pkl file
     save_preprocessor(preprocessor)
 
+    # ADD — Saving processed CSVs
+
+    os.makedirs("data/processed", exist_ok=True)
+
+    train_df = pd.concat([X_train, y_train], axis=1)
+    test_df = pd.concat([X_test, y_test], axis=1)
+
+    train_df.to_csv("data/processed/train.csv", index=False)
+    test_df.to_csv("data/processed/test.csv", index=False)
+
+    print("Saved Train & Test CSVs inside data/processed/")
+
 
 def clean_health_data(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -105,6 +118,6 @@ def build_preprocessor(numerical_cols, categorical_cols=None):
     preprocessor = ColumnTransformer(transformers=transformers)
     return preprocessor
 
+
 if __name__ == "__main__":
     run_prep("/home/ayush/ishu/MLE-TRAINING/data/diabetes_cleaned.csv")
-

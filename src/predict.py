@@ -28,24 +28,43 @@ class Predictor:
             return obj.get("model") or obj.get("Model")
         return obj
 
-    # ✅ Tests expect this function
-    def predict(self, df: pd.DataFrame):
-        X = self.preprocessor.transform(df)
-        return self.model.predict(X)
+    # # ✅ Tests expect this function
+    # def predict(self, df: pd.DataFrame):
+    #     X = self.preprocessor.transform(df)
+    #     return self.model.predict(X)
 
-    # Optional single-row function
-    def predict_single_row(self, row: dict):
-        df = pd.DataFrame([row])
-        return self.predict(df)[0]
+    # # Optional single-row function
+    # def predict_single_row(self, row: dict):
+    #     df = pd.DataFrame([row])
+        # return self.predict(df)[0]
 
-    def _align_columns(self, df):
+    def _align_columns(self, df: pd.DataFrame):
         required_cols = list(self.preprocessor.feature_names_in_)
         for col in required_cols:
             if col not in df.columns:
                 df[col] = 0
         return df[required_cols]
 
-    def predict(self, df: pd.DataFrame):
-        df = self._align_columns(df)
+    def predict(self, input_data):
+        """
+        input_data:
+        - pd.DataFrame (tests)
+        - dict (FastAPI)
+        """
+        if isinstance(input_data,dict):
+            df = pd.DataFrame([input_data])
+        else:
+            df = input_data.copy()
+        
+        df =self._align_columns(df)
         X = self.preprocessor.transform(df)
-        return self.model.predict(X)
+        
+        preds = self.model.predict(X)
+        
+        if hasattr(self.model,"predict_proba"):
+            probs = self.model.predict_proba(X)[0]
+            probs_dict = dict(zip(self.model.classes_,probs))
+        else:
+            probs_dict ={}
+            
+        return preds[0],probs_dict

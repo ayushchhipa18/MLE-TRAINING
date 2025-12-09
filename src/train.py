@@ -7,8 +7,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split, cross_val_score
+import mlflow
+import mlflow.sklearn as mlflow_sklearn
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# Experiment create
+mlflow.set_experiment("diabetes_classification")
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s-%(levelname)s-%(message)s")
@@ -60,49 +68,97 @@ def main(args):
     else:
         X_val_transformed = None
 
-    # Baseline model(Randomforest as ex)
-    logger.info("Initializing baseline model (RandomForestClassifier)")
-    model = RandomForestClassifier(
-        n_estimators=args.n_estimators,
-        max_depth=args.max_depth if args.max_depth > 0 else None,
-        random_state=args.random_seed,
-        n_jobs=-1,
-    )
+    # ML flow run
+    with mlflow.start_run():
+        # Log params
+        mlflow.log_param("n_estimators", args.n_estimators)
+        mlflow.log_param("max_depth", args.max_depth)
+        mlflow.log_param("random_seed", args.random_seed)
+        mlflow.log_param("cv", args.cv)
+        mlflow.log_param("test_size", args.test_size)
+        mlflow.log_param("stratify", args.stratify)
+        mlflow.log_param("save_with_preprocessor", args.save_with_preprocessor)
 
-    # cross-validation
-    if args.cv and args.cv > 1:
-        logger.info("Running %d-fold cross validation", args.cv)
-        cv_score = cross_val_score(
-            model, X_train_transformed, y_train, cv=args.cv, scoring="f1_weighted", n_jobs=-1
+        # Baseline model(Randomforest as ex)
+        logger.info("Initializing baseline model (RandomForestClassifier)")
+        model = RandomForestClassifier(
+            n_estimators=args.n_estimators,
+            max_depth=args.max_depth if args.max_depth > 0 else None,
+            random_state=args.random_seed,
+            n_jobs=-1,
         )
-        logger.info("CV scores: %s", np.round(cv_score, 4).tolist())
-        logger.info("CV mean f1_weighted: %.4f", np.mean(cv_score))
 
-    # Fit the model
-    logger.info("Fitting model on training data")
-    model.fit(X_train_transformed, y_train)
+        # cross-validation
+        if args.cv and args.cv > 1:
+            logger.info("Running %d-fold cross validation", args.cv)
+            cv_score = cross_val_score(
+                model, X_train_transformed, y_train, cv=args.cv, scoring="f1_weighted", n_jobs=-1
+            )
+            logger.info("CV scores: %s", np.round(cv_score, 4).tolist())
+            logger.info("CV mean f1_weighted: %.4f", np.mean(cv_score))
+            mlflow.log_metric("cv_mean_f1_weighted", float(np.mean(cv_score)))
 
-    # validate  data
-    if X_val_transformed is not None:
-        logger.info("Evaluating on validation set ")
-        y_pred = model.predict(X_val_transformed)
-        acc = accuracy_score(y_val, y_pred)
-        logger.info("Validation accuracy: %.4f", acc)
-        logger.info("Classification report:\n%s", classification_report(y_val, y_pred))
+        # Fit the model
+        logger.info("Fitting model on training data")
+        model.fit(X_train_transformed, y_train)
 
-    else:
-        logger.info("No validation set to evaluate")
+        # validate  data
+        if X_val_transformed is not None:
+            logger.info("Evaluating on validation set ")
+            y_pred = model.predict(X_val_transformed)
+            acc = accuracy_score(y_val, y_pred)
+            logger.info("Validation accuracy: %.4f", acc)
+            logger.info("Classification report:\n%s", classification_report(y_val, y_pred))
 
-    # save model
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
-    if args.save_with_preprocessor:
-        logger.info("Saving pipeline (preprocessor + model) to %s", args.output)
-        joblib.dump({"Preprocessor": preprocessor, "model": model}, args.output)
-    else:
-        logger.info("Saving model only to %s", args.output)
-        joblib.dump(model, args.output)
+            # Weighted F1-score
+            f1 = f1_score(y_val, y_pred, average="weighted")
+            logger.info("Weighted F1 score: %.4f", f1)
+            mlflow.log_metric("weighted_f1_score", float(f1))
 
-    logger.info("Training finished, save to %s", args.output)
+            # Confusion matrix and log as artifact
+            cm = confusion_matrix(y_val, y_pred)
+            plt.figure(figsize=(6, 6))
+            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+            plt.xlabel("Predicted")
+            plt.ylabel("Actual")
+            plt.title("Confusion Matrix")
+            cm_path = "confusion_matrix.png"
+            plt.savefig(cm_path, bbox_inches="tight")
+            plt.close()
+            mlflow.log_artifact(cm_path)
+            logger.info("confusion matrix saved and logged to MLflow as artifact: %s", cm_path)
+        else:
+            logger.info("No validation set to evaluate")
+
+        # save model
+        # os.makedirs(os.path.dirname(args.output), exist_ok=True)
+        out_dir = os.path.dirname(args.output)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+
+        if args.save_with_preprocessor:
+            logger.info("Saving pipeline (preprocessor + model) to %s", args.output)
+            joblib.dump({"Preprocessor": preprocessor, "model": model}, args.output)
+
+            # log pipeline into mlflow as model artifact (optional)
+
+            try:
+                mlflow_sklearn.log_model(model, artifact_path="model")
+                mlflow.log_artifact(args.preprocessor)
+
+            except Exception as e:
+                logger.warning("Could not log pipeline to MLflow: %s", e)
+
+        else:
+            logger.info("Saving model only to %s", args.output)
+            joblib.dump(model, args.output)
+
+            try:
+                mlflow_sklearn.log_model(model, artifact_path="model")
+            except Exception as e:
+                logger.warning("Could not log model to MLflow: %s", e)
+
+        logger.info("Training finished, save to %s", args.output)
 
 
 if __name__ == "__main__":
