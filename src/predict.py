@@ -6,8 +6,8 @@ import pandas as pd
 class Predictor:
     def __init__(
         self,
-        preprocessor_path: str = "preprocessor.pkl",
-        model_path: str = "model.pkl",
+        preprocessor_path: str = "/home/ayush/ishu/MLE-TRAINING/preprocessor.pkl",
+        model_path: str = "/home/ayush/ishu/MLE-TRAINING/model.pkl",
         load_verbose: bool = False,
     ):
         self.preprocessor_path = preprocessor_path
