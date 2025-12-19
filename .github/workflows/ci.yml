@@ -7,7 +7,7 @@ on:
 
 jobs:
     build_test:
-        runs-on: ubunut-latest
+        runs-on: ubuntu-latest
 
         steps:
             # Repository checkout
@@ -36,11 +36,37 @@ jobs:
             - name: Run tests
               run: |
                 uv run pytest -q
+            
+            # Configure AWS credentials(AWS login)
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: ${{ secrets }}
+
+            # Login to Amazon ECR(ECR login)
+            - name: Login to Amazon ECR
+              uses: aws-actions/amazon-ecr-login@v2
+
+
 
             # Docker build(no push)
             - name: Build Docker Image
               run: |
-                docker build -t diabetes-app:ci .
+                docker build -t diabetes-app .
+
+            # Docker tag
+            - name: Tag Docker Image
+              run: |
+                docker tag diabetes-app:latest \
+                ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
+            
+            # Docker push
+            - name: Push Docker Image TO ECR
+              run: |
+                docker push \
+                ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
 
 
 
