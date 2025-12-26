@@ -1,73 +1,64 @@
 name: CI Pipeline
+
 on:
-    push:
-        branches: [ "main" ]
-    pull_request:
-        branches: [ "main" ]
+  pull_request:
+    branches: ["main"]
+
+  push:
+    branches: ["main"]
 
 jobs:
-    build_test:
-        runs-on: ubuntu-latest
+  build_test:
+    runs-on: ubuntu-latest
 
-        steps:
-            # Repository checkout
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            #   Python setup
-            - name: Set up python
-              uses: actions/setup-python@v5
-              with:
-                python-version: "3.10"
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-            # UV install
-            - name: Install uv
-              run: |
-                curl -Ls https://astral.sh/uv/install.sh | sh
-                echo "$home/.cargo/bin" >> $GITHUB_PATH
-            
+      - name: Install uv
+        run: |
+          curl -Ls https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-            # dependencies install
-            - name: Install dependencies 
-              run: |
-                uv sync
+      - name: Install dependencies
+        run: |
+          uv sync
 
-            # Run tests
-            - name: Run tests
-              run: |
-                uv run pytest -q
-            
-            # Configure AWS credentials(AWS login)
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                aws-region: ${{ secrets }}
+      - name: Run tests
+        run: |
+          uv run pytest -q
 
-            # Login to Amazon ECR(ECR login)
-            - name: Login to Amazon ECR
-              uses: aws-actions/amazon-ecr-login@v2
+      # 👇 AWS + Docker steps ONLY on main push
+      - name: Configure AWS credentials
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Build Docker Image
+        if: github.event_name == 'push'
+        run: |
+          docker build -t diabetes-app .
 
-            # Docker build(no push)
-            - name: Build Docker Image
-              run: |
-                docker build -t diabetes-app .
+      - name: Tag Docker Image
+        if: github.event_name == 'push'
+        run: |
+          docker tag diabetes-app:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
 
-            # Docker tag
-            - name: Tag Docker Image
-              run: |
-                docker tag diabetes-app:latest \
-                ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
-            
-            # Docker push
-            - name: Push Docker Image TO ECR
-              run: |
-                docker push \
-                ${{secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{secrets.AWS_REGION}}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
-
-
-
-
+      - name: Push Docker Image TO ECR
+        if: github.event_name == 'push'
+        run: |
+          docker push \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
