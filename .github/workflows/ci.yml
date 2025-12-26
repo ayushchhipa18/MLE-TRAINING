@@ -10,7 +10,7 @@ on:
 jobs:
   build_test:
     runs-on: ubuntu-latest
-
+# temp comment to force git detect change
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -62,3 +62,5 @@ jobs:
         run: |
           docker push \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
+
+
