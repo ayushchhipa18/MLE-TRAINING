@@ -33,7 +33,6 @@ jobs:
         run: |
           uv run pytest -q
 
-      # 👇 AWS + Docker steps ONLY on main push
       - name: Configure AWS credentials
         if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
@@ -62,5 +61,3 @@ jobs:
         run: |
           docker push \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
-
-
