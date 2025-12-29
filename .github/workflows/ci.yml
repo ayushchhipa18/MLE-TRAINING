@@ -10,8 +10,9 @@ on:
 jobs:
   build_test:
     runs-on: ubuntu-latest
-# temp comment to force git detect change
+
     steps:
+      # Checkout & Environment Setup
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -29,10 +30,28 @@ jobs:
         run: |
           uv sync
 
+      #  -----  Code Quality ------
+      - name: Ruff lint
+        run: |
+          uv run ruff check .
+
+      - name: Ruff format check
+        run: |
+          uv run ruff format . --check
+
       - name: Run tests
         run: |
-          uv run pytest -q
+          uv run pytest tests/ -q
 
+      - name: Build API Docker Image
+        run: |
+          docker build -f Dockerfile.uvicorn -t mle-uvicorn:latest .
+      
+      - name: Build Streamlit Docker Image
+        run: |
+          docker build -f Dockerfile.streamlit -t mle-streamlit:latest .  
+          
+        # ECR Push (ONLY on main push)
       - name: Configure AWS credentials
         if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
@@ -45,19 +64,19 @@ jobs:
         if: github.event_name == 'push'
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker Image
-        if: github.event_name == 'push'
-        run: |
-          docker build -t diabetes-app .
 
-      - name: Tag Docker Image
+      - name: Tag & Push Docker Image
         if: github.event_name == 'push'
         run: |
-          docker tag diabetes-app:latest \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
-
-      - name: Push Docker Image TO ECR
-        if: github.event_name == 'push'
-        run: |
+          docker tag mle-uvicorn:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
           docker push \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DIABETES_APP }}:latest
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
+
+      - name: Tag & Push Streamlit image
+        if: github.event_name == 'push'
+        run: |
+          docker tag mle-streamlit:latest \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
+          docker push \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest

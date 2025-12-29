@@ -19,7 +19,7 @@ app = FastAPI(
 
 # Load model once
 model_predictor = Predictor(
-    preprocessor_path="/home/ayush/ishu/MLE-TRAINING/preprocessor.pkl",
+    preprocessor_path="/home/ayush/ishu/MLE-TRAINING/models/preprocessor.pkl",
     model_path="/home/ayush/ishu/MLE-TRAINING/models/model.pkl"
 )
 

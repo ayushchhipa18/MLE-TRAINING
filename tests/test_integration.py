@@ -1,14 +1,15 @@
-import json
-import sys, os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) 
-
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
-from app.api import app
 
-client = TestClient(app)
-
-
-def test_predict():
+@patch("app.api.predictor")
+def test_predict(mock_predictor):
+    mock_predictor.predict.return_value = (
+        1,
+        {"0": 0.2, "1": 0.8}
+    )
+    from app.api import app
+    client = TestClient(app)
+    
     sample_playlod = {
         "HighBP": 1,
         "HighChol":1,
