@@ -1,0 +1,31 @@
+#  ---Base Image ---
+From python:3.10-slim
+
+# ---System Dependencies ---
+Run apt-get update && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Install uv ---
+Run curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add UV to Path
+ENV PATH="/root/.local/bin:${PATH}"
+
+#  ---App setup---
+WORKDIR /app
+
+# copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# install dependencies using UV
+RUN /root/.local/bin/uv sync --frozen --no-dev
+
+
+# ---Copy application files---
+COPY . .
+
+# ---Expose Ports---
+EXPOSE 8501
+
+# ---Run Streamlit App---
+CMD ["bash", "-c", "/root/.local/bin/uv run streamlit run app/frontend.py --server.port=8501 --server.headless=true"]
