@@ -14,7 +14,10 @@ CLASS_MAP = {
 app = FastAPI(
     title ="Diabetes Prediction API",
     description ="Predict diabetes status",
-    version="1.0"
+    version="1.0",
+    root_path="/api",      
+    docs_url="/docs",
+    openapi_url="/openapi.json"
 )
 
 # -- Load model once --

@@ -224,3 +224,8 @@ data/processed/
 
 # Env
 .venv/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup

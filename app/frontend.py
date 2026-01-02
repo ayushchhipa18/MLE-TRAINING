@@ -2,7 +2,7 @@ import streamlit as  st
 import requests
 
 # FastAPI endpoint
-API_URL = "http://127.0.0.1:8000/predict"
+API_URL = "http://uvicorn:8000/predict"
 
 st.set_page_config(page_title="Diabetes Prediction App",layout="centered")
 
