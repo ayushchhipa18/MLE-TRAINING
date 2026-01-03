@@ -1,17 +1,17 @@
-resource "aws_ecs_task_definition" "app" {
-  family                   = "diabetes-task"
+resource "aws_ecs_task_definition" "diabetes_task" {
+  family                   = "diabetes-app-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "1024"
+  memory                   = "2048"
 
-  execution_role_arn = aws_iam_role.ecs_execution_role.arn
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
-      name      = "diabetes_container"
-      image     = var.ecr_image_uri
+      name      = "uvicorn"
+      image     = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/mle-uvicorn:latest"
       essential = true
 
       portMappings = [
@@ -20,21 +20,22 @@ resource "aws_ecs_task_definition" "app" {
           hostPort      = 8000
           protocol      = "tcp"
         },
+      ]
+    },
+    {
+      name      = "streamlit"
+      image     = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/mle-streamlit:latest"
+      essential = true
+      
+      portMappings = [
         {
           containerPort = 8501
           hostPort      = 8501
           protocol      = "tcp"
         }
       ]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/diabetes"
-          awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "ecs"
-        }
-      }
     }
   ])
 }
+
+ 

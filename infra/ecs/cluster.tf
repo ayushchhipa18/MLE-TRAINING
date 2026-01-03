@@ -1,3 +1,3 @@
-resource "aws_ecs_cluster" "this" {
-  name = "diabetes-ecs-cluster"
+resource "aws_ecs_cluster" "diabetes_cluster" {
+  name = "diabetes-fargate-cluster"
 }
