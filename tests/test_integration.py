@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
+
 from app.api import app
+
 
 
 @patch("app.api.predictor")
