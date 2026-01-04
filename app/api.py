@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from typing import Dict,Any
 
 from src.predict import Predictor 
+from main import app
+
 
 # -- CONSTANTS --
 CLASS_MAP = {
@@ -66,7 +68,7 @@ def health():
 
 @app.post("/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
-     predictor = get_predictor()
+    predictor = get_predictor()
      
     input_data = request.model_dump()
     
