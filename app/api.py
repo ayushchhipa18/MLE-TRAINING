@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Dict,Any
 
 from src.predict import Predictor 
-from main import app
+
 
 
 # -- CONSTANTS --
