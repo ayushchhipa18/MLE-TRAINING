@@ -72,7 +72,7 @@ def predict(request: PredictRequest):
      
     input_data = request.model_dump()
     
-    y_pred, raw_probs = model_predictor.predict(input_data)
+    y_pred, raw_probs = predictor.predict(input_data)
 
     y_pred = int(y_pred)
     predicted_class = CLASS_MAP[y_pred]
