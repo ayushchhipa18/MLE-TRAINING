@@ -1,8 +1,8 @@
-import json
-import sys, os
+import sys
+import os
 from unittest.mock import patch
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from fastapi.testclient import TestClient
 from app.api import app
@@ -12,13 +12,14 @@ client = TestClient(app)
 
 def test_predict():
     mock_return = (
-        2,  # y_pred
-        {"0": 0.05, "1": 0.15, "2": 0.80}  # raw_probs
+        2,
+        {"0": 0.05, "1": 0.15, "2": 0.80}
     )
+
     with patch("app.api.model_predictor.predict", return_value=mock_return):
-        sample_playlod = {
+        payload = {
             "HighBP": 1,
-            "HighChol":1,
+            "HighChol": 1,
             "CholCheck": 1,
             "BMI": 35.5,
             "Smoker": 1,
@@ -38,17 +39,12 @@ def test_predict():
             "Age": 50,
             "Education": 4,
             "Income": 3
-            
         }
-        
-        
-        response = client.post("/predict",json=sample_playlod)
-    
+
+        response = client.post("/predict", json=payload)
+
     assert response.status_code == 200
-    
     data = response.json()
-    
+
     assert data["predicted_class"] == "Diabetic"
-    assert "probabilities" in data
     assert isinstance(data["probabilities"], dict)
-    
