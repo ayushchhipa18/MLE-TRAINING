@@ -48,7 +48,7 @@ def test_predict():
     
     data = response.json()
     
-    assert "predicted_class" in data
+    assert data["predicted_class"] == "Diabetic"
     assert "probabilities" in data
-    assert isinstance(data["probabilities"],dict)
+    assert isinstance(data["probabilities"], dict)
     
