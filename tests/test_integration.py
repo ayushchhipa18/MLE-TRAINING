@@ -6,8 +6,9 @@ from main import app
 
 
 
-@patch("app.api.predictor")
-def test_predict(mock_predictor):
+@patch("app.api.get_predictor")
+def test_predict(mock_get_predictor):
+
     mock_predictor = MagicMock()
     mock_predictor.predict.return_value = (
         1,
@@ -41,9 +42,10 @@ def test_predict(mock_predictor):
         "Income": 3
         
     }
-    
-    response = client.post("/predict",json=sample_playlod)
-    
+    response = client.post("/predict", json=sample_payload)
+
     assert response.status_code == 200
-    assert "predicted_class" in response.json()
-    
+    data = response.json()
+
+    assert data["predicted_class"] == "Pre-Diabetic"
+    assert isinstance(data["probabilities"], dict)
