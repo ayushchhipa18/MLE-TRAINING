@@ -24,7 +24,7 @@ jobs:
             - name: Install uv
               run: |
                 curl -Ls https://astral.sh/uv/install.sh | sh
-                echo "$home/.cargo/bin" >> $GITHUB_PATH
+                echo "$HOME/.cargo/bin" >> $GITHUB_PATH
             
 
             # dependencies install
@@ -36,6 +36,10 @@ jobs:
             - name: Run tests
               run: |
                 uv run pytest -q
+            # Docker setup
+            - name: Set up Docker
+              uses: docker/setup-buildx-action@v3
+
 
             # Docker build(no push)
             - name: Build Docker Image
