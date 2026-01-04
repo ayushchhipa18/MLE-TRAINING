@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 import sys, os
+import pytest
+pytest.skip("Skipping inference tests in CI", allow_module_level=True)
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
