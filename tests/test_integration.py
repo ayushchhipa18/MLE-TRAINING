@@ -42,7 +42,7 @@ def test_predict(mock_get_predictor):
         "Income": 3
         
     }
-    response = client.post("/predict", json=sample_payload)
+    response = client.post("/predict", json=sample_playlod)
 
     assert response.status_code == 200
     data = response.json()
