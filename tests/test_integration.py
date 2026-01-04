@@ -5,7 +5,7 @@ from unittest.mock import patch
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))) 
 
 from fastapi.testclient import TestClient
-with patch("src.predict.joblib.load") as moock_load:
+with patch("src.predict.joblib.load") as mock_load:
     mock_load.return_value = "dummy_preprocessor"
     
     from app.api import app
