@@ -11,7 +11,7 @@ client = TestClient(app)
 
 
 def test_predict():
-     mock_return = (
+    mock_return = (
         2,  # y_pred
         {"0": 0.05, "1": 0.15, "2": 0.80}  # raw_probs
     )
@@ -40,9 +40,9 @@ def test_predict():
             "Income": 3
             
         }
-        res = client.post("/predict", json=payload)
         
-    # response = client.post("/predict",json=sample_playlod)
+        
+        response = client.post("/predict",json=sample_playlod)
     
     assert response.status_code == 200
     
