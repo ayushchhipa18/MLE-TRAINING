@@ -1,18 +1,16 @@
-from unittest.mock import MagicMock, patch
-from fastapi.testclient import TestClient
-
-from main import app
 
 import os
 import pytest
 
-if os.getenv("CI") == "true":
+if os.getenv("CI", "").lower() == "true":
     pytest.skip(
         "Skipping integration tests in CI (model artifacts not available)",
         allow_module_level=True
     )
 
-
+from unittest.mock import MagicMock, patch
+from fastapi.testclient import TestClient
+from main import app
 
 @patch("app.api.get_predictor")
 def test_predict(mock_get_predictor):
