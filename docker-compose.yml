@@ -24,6 +24,8 @@ services:
       - ./models:/app/models:ro
     networks:
       - mle-net
+    environment:
+      - API_URL=http://uvicorn:8000/predict
 
 networks:
   mle-net:
