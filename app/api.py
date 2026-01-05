@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from typing import Dict,Any
 
 from src.predict import Predictor 
-
 # -- CONSTANTS --
 CLASS_MAP = {
     0: "Healthy",
@@ -14,7 +13,8 @@ CLASS_MAP = {
 app = FastAPI(
     title ="Diabetes Prediction API",
     description ="Predict diabetes status",
-    version="1.0"
+    version="1.0",
+    root_path="/api"
 )
 # -- Load model once --
 _model_predictor = None
