@@ -14,11 +14,11 @@ from src.predict import Predictor
 
 def test_predictor_load():
     p = Predictor(
-         preprocessor_path="models/preprocessor.pkl",
+        preprocessor_path="models/preprocessor.pkl",
         model_path="models/model.pkl",
     )
-    assert p is not None
-
+    assert p.model is None
+    assert p.preprocessor is None
 
 def test_predict_single_row(monkeypatch):
     dummy_pred = np.array(["Healthy"])
