@@ -2,18 +2,20 @@ import pandas as pd
 import numpy as np
 import sys, os
 import pytest
-pytest.skip("Skipping inference tests in CI", allow_module_level=True)
+if os.getenv("CI") == "true":
+    pytest.skip(
+        "Skipping inference tests in CI (model artifacts not available)",
+        allow_module_level=True
+    )
 
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-
-from predict import Predictor
+import numpy as np
+from src.predict import Predictor
 
 
 def test_predictor_load():
     p = Predictor(
-        preprocessor_path="/home/ayush/ishu/MLE-TRAINING/models/preprocessor.pkl",
-        model_path="/home/ayush/ishu/MLE-TRAINING/models/model.pkl",
+         preprocessor_path="models/preprocessor.pkl",
+        model_path="models/model.pkl",
     )
     assert p is not None
 
