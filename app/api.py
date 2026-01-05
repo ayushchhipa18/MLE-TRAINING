@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import os
 from typing import Dict,Any
 
 from src.predict import Predictor 
@@ -22,9 +23,14 @@ _model_predictor = None
 def get_predictor() -> Predictor:
     global _model_predictor
     if _model_predictor is None:
+        from src.predict import Predictor
         _model_predictor = Predictor(
-            preprocessor_path="models/preprocessor.pkl",
-            model_path="models/model.pkl"
+            preprocessor_path=os.getenv(
+                "PREPROCESSOR_PATH", "models/preprocessor.pkl"
+            ),
+            model_path=os.getenv(
+                "MODEL_PATH", "models/model.pkl"
+            )
         )
     return _model_predictor
 
