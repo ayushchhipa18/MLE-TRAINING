@@ -17,10 +17,17 @@ app = FastAPI(
     version="1.0"
 )
 # -- Load model once --
-model_predictor = Predictor(
-    preprocessor_path="models/preprocessor.pkl",
-    model_path="models/model.pkl"
-)
+_model_predictor = None
+
+def get_predictor() -> Predictor:
+    global _model_predictor
+    if _model_predictor is None:
+        _model_predictor = Predictor(
+            preprocessor_path="models/preprocessor.pkl",
+            model_path="models/model.pkl"
+        )
+    return _model_predictor
+
 # -- SCHEMAS --
 class PredictRequest(BaseModel):
     HighBP: int
@@ -56,10 +63,12 @@ def health():
 
 @app.post("/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
+    
+    predictor = get_predictor()
 
     input_data = request.model_dump()
     
-    y_pred, raw_probs = model_predictor.predict(input_data)
+    y_pred, raw_probs = predictor.predict(input_data)
 
     y_pred = int(y_pred)
     predicted_class = CLASS_MAP[y_pred]
