@@ -3,7 +3,6 @@ from pydantic import BaseModel
 import os
 from typing import Dict,Any
 
-from src.predict import Predictor 
 # -- CONSTANTS --
 CLASS_MAP = {
     0: "Healthy",
@@ -20,10 +19,12 @@ app = FastAPI(
 # -- Load model once --
 _model_predictor = None
 
-def get_predictor() -> Predictor:
+def get_predictor():
     global _model_predictor
     if _model_predictor is None:
         from src.predict import Predictor
+        
+        
         _model_predictor = Predictor(
             preprocessor_path=os.getenv(
                 "PREPROCESSOR_PATH", "models/preprocessor.pkl"
