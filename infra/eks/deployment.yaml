@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: diabetes-app
   namespace: diabetes
-  labels:
-    app: diabetes
 spec:
   replicas: 2
   selector:
@@ -17,9 +15,11 @@ spec:
     
     spec:
       containers:
-        - name: diabetes-container
-          image: 616426097428.dkr.ecr.ap-south-1.amazonaws.com/diabetes-app:latest
-          imagePullPolicy: Always
+        - name: fastapi
+          image: 616426097428.dkr.ecr.ap-south-1.amazonaws.com/mle-uvicorn:latest
           ports:
             - containerPort: 8000
-            - containerPort: 8501
+        - name: streamlit
+          image: 616426097428.dkr.ecr.ap-south-1.amazonaws.com/mle-streamlit:latest
+          ports:
+            - containerPort: 8501  

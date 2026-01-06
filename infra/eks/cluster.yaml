@@ -9,7 +9,13 @@ iam:
   withOIDC: true
 
 fargateProfiles:
+  - name: fp-system
+    selectors:
+      - namespace: kube-system
   - name: fp-default
     selectors:
       - namespace: default
-      - namespace: kube-system
+  - name: fp-diabetes
+    selectors:
+      - namespace: diabetes
+  
