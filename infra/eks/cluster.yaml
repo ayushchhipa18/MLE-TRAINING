@@ -1,0 +1,21 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: diabetes-eks
+  region: ap-south-1
+
+iam:
+  withOIDC: true
+
+fargateProfiles:
+  - name: fp-system
+    selectors:
+      - namespace: kube-system
+  - name: fp-default
+    selectors:
+      - namespace: default
+  - name: fp-diabetes
+    selectors:
+      - namespace: diabetes
+  
