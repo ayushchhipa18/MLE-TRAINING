@@ -1,74 +1,62 @@
 name: CI Pipeline
 
-on:
-  pull_request:
-    branches: ["main"]
-
+on: 
   push:
-    branches: ["main"]
 
 jobs:
-    build_test:
-        runs-on: ubuntu-latest
+  build-test-deploy:  
+    runs-on:  ubuntu-latest
+    
+    steps: 
+      # Source Code Checkout
+      - name:  Checkout source code
+        uses: actions/checkout@v4
 
-      - name: Install uv
+      # Python Environment Setup
+      - name: Install UV package manager
         run: |
           curl -Ls https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/. cargo/bin" >> $GITHUB_PATH
 
-      - name: Install dependencies
+      - name: Install Python dependencies with UV
+        run: uv sync
+
+      # Code Quality Checks
+      - name: Check code formatting with Ruff
+        run: uv run ruff format . --check
+
+      # Run Test Suite
+      - name: Execute Python tests with Pytest
         run: |
-          uv sync
+          echo "PWD=$(pwd)"
+          export PYTHONPATH=$(pwd)
+          python -c "import sys; print(sys. path)"
+          uv run pytest -q
 
-            # UV install
-            - name: Install uv
-              run: |
-                curl -Ls https://astral.sh/uv/install.sh | sh
-                echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-            
+      # Docker Image Build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Ruff format check
-        run: |
-          uv run ruff format . --check
+      - name: Build Uvicorn API Docker image
+        run: docker build -f Dockerfile.uvicorn -t mle-uvicorn:ci .
 
-            # Run tests
-            - name: Run tests
-              run: |
-                echo "PWD=$(pwd)"
-                export PYTHONPATH=$(pwd)
-                python -c "import sys; print(sys.path)"
-                uv run pytest -q
-            # Docker setup
-            - name: Set up Docker
-              uses: docker/setup-buildx-action@v3
+      - name: Build Streamlit UI Docker image
+        run: docker build -f Dockerfile.streamlit -t mle-streamlit:ci .
 
-
-            # Docker build(no push)
-            - name: Build Docker Image
-              run: docker build -f Dockerfile.uvicorn -t mle-uvicorn:ci .
-
-            - name: Build Streamlit Image
-              run: docker build -f Dockerfile.streamlit -t mle-streamlit:ci .
-
-
-
-      - name: Login to Amazon ECR
-        if: github.event_name == 'push'
+      # AWS ECR Authentication & Push
+      - name:  Authenticate to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-
-      - name: Tag & Push Docker Image
-        if: github.event_name == 'push'
+      - name: Tag and push Uvicorn image to ECR
         run: |
-          docker tag mle-uvicorn:latest \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
+          docker tag mle-uvicorn:ci \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
           docker push \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
 
-      - name: Tag & Push Streamlit image
-        if: github.event_name == 'push'
+      - name: Tag and push Streamlit image to ECR
         run: |
-          docker tag mle-streamlit:latest \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
+          docker tag mle-streamlit:ci \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr. ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
           docker push \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
