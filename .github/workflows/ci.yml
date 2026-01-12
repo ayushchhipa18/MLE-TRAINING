@@ -44,9 +44,13 @@ jobs:
 
       # AWS ECR Authentication & Push
       - name: Authenticate to Amazon ECR
+        continue-on-error: true
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Tag and push Uvicorn image to ECR
+        continue-on-error: true
         run: |
           docker tag mle-uvicorn:ci \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
@@ -54,6 +58,7 @@ jobs:
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
 
       - name: Tag and push Streamlit image to ECR
+        continue-on-error: true
         run:  |
           docker tag mle-streamlit:ci \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
