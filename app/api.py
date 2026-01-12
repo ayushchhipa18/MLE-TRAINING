@@ -4,25 +4,25 @@ from typing import Dict,Any
 
 from src.predict import Predictor 
 
-
+# -- CONSTANTS --
 CLASS_MAP = {
     0: "Healthy",
     1: "Pre-Diabetic",
     2: "Diabetic"
 }
-
+# -- APP INIT --
 app = FastAPI(
     title ="Diabetes Prediction API",
     description ="Predict diabetes status",
     version="1.0"
 )
 
-# Load model once
+# -- Load model once --
 model_predictor = Predictor(
-    preprocessor_path="/home/ayush/ishu/MLE-TRAINING/models/preprocessor.pkl",
-    model_path="/home/ayush/ishu/MLE-TRAINING/models/model.pkl"
+    preprocessor_path="models/preprocessor.pkl",
+    model_path="models/model.pkl"
 )
-
+# -- SCHEMAS --
 class PredictRequest(BaseModel):
     HighBP: int
     HighChol: int
@@ -49,13 +49,17 @@ class PredictRequest(BaseModel):
 class PredictResponse(BaseModel):
     predicted_class: str
     probabilities: Dict[str,float]
+    
+# -- HEALTH CHECK --
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
 
 @app.post("/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
 
     input_data = request.model_dump()
     
-    # ⬇️ FIXED
     y_pred, raw_probs = model_predictor.predict(input_data)
 
     y_pred = int(y_pred)
