@@ -14,9 +14,11 @@ CLASS_MAP = {
 app = FastAPI(
     title ="Diabetes Prediction API",
     description ="Predict diabetes status",
-    version="1.0"
-)
-
+    version="1.0",
+    root_path="/api",      
+    docs_url="/docs",
+    openapi_url="/openapi.json"
+    
 # -- Load model once --
 model_predictor = Predictor(
     preprocessor_path="models/preprocessor.pkl",
@@ -55,7 +57,7 @@ class PredictResponse(BaseModel):
 def health():
     return {"status": "healthy"}
 
-@app.post("/predict", response_model=PredictResponse)
+@app.post("/api/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
 
     input_data = request.model_dump()
