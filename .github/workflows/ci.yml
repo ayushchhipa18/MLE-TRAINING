@@ -1,24 +1,24 @@
 name: CI Pipeline
+
 on:
-    push:
-        branches: [ "main" ]
-    pull_request:
-        branches: [ "main" ]
+  pull_request:
+    branches: ["main"]
+
+  push:
+    branches: ["main"]
 
 jobs:
     build_test:
         runs-on: ubuntu-latest
 
-        steps:
-            # Repository checkout
-            - name: Checkout repository
-              uses: actions/checkout@v4
+      - name: Install uv
+        run: |
+          curl -Ls https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-            #   Python setup
-            - name: Set up python
-              uses: actions/setup-python@v5
-              with:
-                python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          uv sync
 
             # UV install
             - name: Install uv
@@ -27,10 +27,9 @@ jobs:
                 echo "$HOME/.cargo/bin" >> $GITHUB_PATH
             
 
-            # dependencies install
-            - name: Install dependencies 
-              run: |
-                uv sync
+      - name: Ruff format check
+        run: |
+          uv run ruff format . --check
 
             # Run tests
             - name: Run tests
@@ -53,6 +52,23 @@ jobs:
 
 
 
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecr-login@v2
 
 
+      - name: Tag & Push Docker Image
+        if: github.event_name == 'push'
+        run: |
+          docker tag mle-uvicorn:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
+          docker push \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
 
+      - name: Tag & Push Streamlit image
+        if: github.event_name == 'push'
+        run: |
+          docker tag mle-streamlit:latest \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
+          docker push \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest

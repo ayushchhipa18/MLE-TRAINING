@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diabetes-app
+  namespace: diabetes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: diabetes
+  template:
+    metadata:
+      labels:
+        app: diabetes
+    
+    spec:
+      containers:
+        - name: fastapi
+          image: 616426097428.dkr.ecr.ap-south-1.amazonaws.com/mle-uvicorn:latest
+          ports:
+            - containerPort: 8000
+        - name: streamlit
+          image: 616426097428.dkr.ecr.ap-south-1.amazonaws.com/mle-streamlit:latest
+          ports:
+            - containerPort: 8501  

@@ -68,7 +68,7 @@ class PredictResponse(BaseModel):
 def health():
     return {"status": "healthy"}
 
-@app.post("/predict", response_model=PredictResponse)
+@app.post("/api/predict", response_model=PredictResponse)
 def predict(request: PredictRequest):
     
     predictor = get_predictor()
