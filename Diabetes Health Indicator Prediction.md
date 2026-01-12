@@ -11,6 +11,51 @@
 - Environment setup
 - Basic configuration
 
+### Prerequisites
+- Python 3.10 or higher
+- Git
+- Docker (optional, for containerized deployment)
+
+### Installation Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/diabetes-health-indicator-prediction.git
+   cd diabetes-health-indicator-prediction
+   ```
+
+2. Install UV package manager (if not already installed):
+   ```bash
+   curl -Ls https://astral.sh/uv/install.sh | sh
+   ```
+
+3. Install dependencies:
+   ```bash
+   uv sync --all-extras --dev
+   ```
+
+### Environment Setup
+1. Activate the virtual environment:
+   ```bash
+   source .venv/bin/activate  # On Unix/macOS
+   # or
+   .venv\Scripts\activate     # On Windows
+   ```
+
+2. Verify installation:
+   ```bash
+   python -c "import fastapi, streamlit, sklearn; print('All dependencies installed successfully')"
+   ```
+
+### Basic Configuration
+1. The application uses environment variables for configuration. Copy the example:
+   ```bash
+   cp .env.example .env  # If .env.example exists
+   ```
+
+2. Update the `.env` file with your settings (database URLs, API keys, etc.)
+
+3. For local development, the default configuration should work out of the box.
+
 ## In-Depth Documentation
 - Detailed architecture explanation
 - Data preprocessing details
