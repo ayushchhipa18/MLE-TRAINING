@@ -1,11 +1,10 @@
 import streamlit as  st
 import requests
-
+import os
 # FastAPI endpoint
 API_URL = os.getenv(
     "API_URL",
-    "http://localhost:8000/predict"
-)
+    "http://174.129.158.91:8000/predict")
 
 print("API_URL USED BY STREAMLIT =", API_URL)
 

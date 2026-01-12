@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  uvicorn:
+    build:
+      context: .
+      dockerfile: Dockerfile.uvicorn
+    image: mle-uvicorn:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models:ro
+    networks:
+      - mle-net
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    image: mle-streamlit:latest
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./models:/app/models:ro
+    networks:
+      - mle-net
+    environment:
+      - API_URL=http://uvicorn:8000/predict
+
+networks:
+  mle-net:
+

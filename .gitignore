@@ -225,12 +225,7 @@ data/processed/
 # Env
 .venv/
 
-
 # Terraform
-.terraform/
+**/.terraform/
 *.tfstate
 *.tfstate.backup
-
-# os Editors
-.vscode/
-.DS_Store
