@@ -1,8 +1,7 @@
 name: CI Pipeline
 
 on: 
-  push:
-
+  push: 
 jobs:
   build-test-deploy:  
     runs-on:  ubuntu-latest
@@ -10,7 +9,7 @@ jobs:
     steps: 
       # Source Code Checkout
       - name:  Checkout source code
-        uses: actions/checkout@v4
+        uses:  actions/checkout@v4
 
       # Python Environment Setup
       - name: Install UV package manager
@@ -19,32 +18,32 @@ jobs:
           echo "$HOME/. cargo/bin" >> $GITHUB_PATH
 
       - name: Install Python dependencies with UV
-        run: uv sync
+        run:  uv sync --all-extras --dev
 
       # Code Quality Checks
       - name: Check code formatting with Ruff
-        run: uv run ruff format . --check
+        run: uv run --frozen ruff format . --check
 
       # Run Test Suite
       - name: Execute Python tests with Pytest
         run: |
           echo "PWD=$(pwd)"
           export PYTHONPATH=$(pwd)
-          python -c "import sys; print(sys. path)"
-          uv run pytest -q
+          python -c "import sys; print(sys.path)"
+          uv run --frozen pytest -q
 
       # Docker Image Build
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build Uvicorn API Docker image
-        run: docker build -f Dockerfile.uvicorn -t mle-uvicorn:ci .
+        run: docker build -f Dockerfile.uvicorn -t mle-uvicorn: ci .
 
       - name: Build Streamlit UI Docker image
         run: docker build -f Dockerfile.streamlit -t mle-streamlit:ci .
 
       # AWS ECR Authentication & Push
-      - name:  Authenticate to Amazon ECR
+      - name: Authenticate to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Tag and push Uvicorn image to ECR
@@ -52,11 +51,11 @@ jobs:
           docker tag mle-uvicorn:ci \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
           docker push \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets. ECR_UVICORN_REPO }}:latest
 
       - name: Tag and push Streamlit image to ECR
-        run: |
+        run:  |
           docker tag mle-streamlit:ci \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr. ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
-          docker push \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
+          docker push \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets. ECR_STREAMLIT_REPO }}:latest
