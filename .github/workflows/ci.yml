@@ -1,47 +1,82 @@
 name: CI Pipeline
+
 on:
-    push:
-        branches: [ "main" ]
-    pull_request:
-        branches: [ "main" ]
+  pull_request:
+    branches: ["main"]
+
+  push:
+    branches: ["main"]
 
 jobs:
-    build_test:
-        runs-on: ubuntu-latest
+  build_test:
+    runs-on: ubuntu-latest
 
-        steps:
-            # Repository checkout
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    steps:
+      # Checkout & Environment Setup
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            #   Python setup
-            - name: Set up python
-              uses: actions/setup-python@v5
-              with:
-                python-version: "3.10"
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-            # UV install
-            - name: Install uv
-              run: |
-                curl -Ls https://astral.sh/uv/install.sh | sh
-                echo "$home/.cargo/bin" >> $GITHUB_PATH
-            
+      - name: Install uv
+        run: |
+          curl -Ls https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-            # dependencies install
-            - name: Install dependencies 
-              run: |
-                uv sync
+      - name: Install dependencies
+        run: |
+          uv sync
 
-            # Run tests
-            - name: Run tests
-              run: |
-                uv run pytest -q
+      #  -----  Code Quality ------
+      - name: Ruff lint
+        run: |
+          uv run ruff check .
 
-            # Docker build(no push)
-            - name: Build Docker Image
-              run: |
-                docker build -t diabetes-app:ci .
+      - name: Ruff format check
+        run: |
+          uv run ruff format . --check
+
+      - name: Run tests
+        run: |
+          uv run pytest tests/ -q
+
+      - name: Build API Docker Image
+        run: |
+          docker build -f Dockerfile.uvicorn -t mle-uvicorn:latest .
+      
+      - name: Build Streamlit Docker Image
+        run: |
+          docker build -f Dockerfile.streamlit -t mle-streamlit:latest .  
+          
+        # ECR Push (ONLY on main push)
+      - name: Configure AWS credentials
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push'
+        uses: aws-actions/amazon-ecr-login@v2
 
 
+      - name: Tag & Push Docker Image
+        if: github.event_name == 'push'
+        run: |
+          docker tag mle-uvicorn:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
+          docker push \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO}}:latest
 
-
+      - name: Tag & Push Streamlit image
+        if: github.event_name == 'push'
+        run: |
+          docker tag mle-streamlit:latest \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
+          docker push \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
