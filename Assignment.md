@@ -69,6 +69,7 @@ This project is structured into four distinct weekly assignments, ensuring an in
 
 -----
 
+
 ## 3\. Repository Structure
 
 ```
