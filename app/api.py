@@ -53,7 +53,7 @@ class PredictResponse(BaseModel):
     probabilities: Dict[str,float]
     
 # -- HEALTH CHECK --
-@app.get("/api/health")
+@app.get("/health")
 def health():
     return {"status": "healthy"}
 
