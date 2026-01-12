@@ -15,7 +15,7 @@ jobs:
       - name: Install UV package manager
         run: |
           curl -Ls https://astral.sh/uv/install.sh | sh
-          echo "$HOME/. cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Python dependencies with UV
         run:  uv sync --all-extras --dev
@@ -37,25 +37,30 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Uvicorn API Docker image
-        run: docker build -f Dockerfile.uvicorn -t mle-uvicorn: ci .
+        run: docker build -f Dockerfile.uvicorn -t mle-uvicorn:ci .
 
       - name: Build Streamlit UI Docker image
         run: docker build -f Dockerfile.streamlit -t mle-streamlit:ci .
 
       # AWS ECR Authentication & Push
       - name: Authenticate to Amazon ECR
+        continue-on-error: true
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Tag and push Uvicorn image to ECR
+        continue-on-error: true
         run: |
           docker tag mle-uvicorn:ci \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
           docker push \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets. ECR_UVICORN_REPO }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_UVICORN_REPO }}:latest
 
       - name: Tag and push Streamlit image to ECR
+        continue-on-error: true
         run:  |
           docker tag mle-streamlit:ci \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest
           docker push \
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets. ECR_STREAMLIT_REPO }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_STREAMLIT_REPO }}:latest

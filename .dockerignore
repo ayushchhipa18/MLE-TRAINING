@@ -5,6 +5,7 @@ __pycache__/
 
 .venv/
 .env
+.env.*
 
 .git/
 .gitignore
@@ -13,3 +14,24 @@ __pycache__/
 .idea/
 
 *.log
+*.tmp
+
+# Project specific exclusions
+tests/
+notebooks/
+docs/
+.github/
+.ruff_cache/
+mlruns/
+*.md
+!README.md
+
+# Data files (if not needed in container)
+data/
+*.csv
+*.json
+
+# Development files
+conftest.py
+pytest.ini
+.pre-commit-config.yaml

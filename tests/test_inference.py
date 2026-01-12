@@ -2,10 +2,11 @@ import pandas as pd
 import numpy as np
 import sys, os
 import pytest
+
 if os.getenv("CI") == "true":
     pytest.skip(
         "Skipping inference tests in CI (model artifacts not available)",
-        allow_module_level=True
+        allow_module_level=True,
     )
 
 import numpy as np
@@ -19,6 +20,7 @@ def test_predictor_load():
     )
     assert p.model is None
     assert p.preprocessor is None
+
 
 def test_predict_single_row(monkeypatch):
     dummy_pred = np.array(["Healthy"])

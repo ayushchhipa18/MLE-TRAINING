@@ -1,32 +1,28 @@
-
 import os
 import pytest
 
 if os.getenv("CI", "").lower() == "true":
     pytest.skip(
         "Skipping integration tests in CI (model artifacts not available)",
-        allow_module_level=True
+        allow_module_level=True,
     )
 
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from main import app
 
+
 @patch("app.api.get_predictor")
 def test_predict(mock_get_predictor):
-
     mock_predictor = MagicMock()
-    mock_predictor.predict.return_value = (
-        1,
-        {"0": 0.2, "1": 0.8}
-    )
+    mock_predictor.predict.return_value = (1, {"0": 0.2, "1": 0.8})
     mock_get_predictor.return_value = mock_predictor
 
     client = TestClient(app)
-    
+
     sample_playlod = {
         "HighBP": 1,
-        "HighChol":1,
+        "HighChol": 1,
         "CholCheck": 1,
         "BMI": 35.5,
         "Smoker": 1,
@@ -45,8 +41,7 @@ def test_predict(mock_get_predictor):
         "Sex": 1,
         "Age": 50,
         "Education": 4,
-        "Income": 3
-        
+        "Income": 3,
     }
     response = client.post("/predict", json=sample_playlod)
 

@@ -6,7 +6,7 @@ import pandas as pd
 class Predictor:
     def __init__(
         self,
-        preprocessor_path: str ,
+        preprocessor_path: str,
         model_path: str,
         load_verbose: bool = False,
     ):
@@ -20,12 +20,14 @@ class Predictor:
     def load(self):
         if self.preprocessor is None:
             obj = joblib.load(self.preprocessor_path)
-            self.preprocessor = obj.get("preprocessor") if isinstance(obj, dict) else obj
-        
+            self.preprocessor = (
+                obj.get("preprocessor") if isinstance(obj, dict) else obj
+            )
+
         if self.model is None:
             obj = joblib.load(self.model_path)
             self.model = obj.get("model") if isinstance(obj, dict) else obj
-        
+
     def _align_columns(self, df: pd.DataFrame):
         required_cols = list(self.preprocessor.feature_names_in_)
         for col in required_cols:
@@ -39,18 +41,18 @@ class Predictor:
         - pd.DataFrame (tests)
         - dict (FastAPI)
         """
-        if isinstance(input_data,dict):
+        if isinstance(input_data, dict):
             df = pd.DataFrame([input_data])
         else:
             df = input_data.copy()
-        
-        df =self._align_columns(df)
+
+        df = self._align_columns(df)
         X = self.preprocessor.transform(df)
-        
+
         preds = self.model.predict(X)
-        
-        if hasattr(self.model,"predict_proba"):
+
+        if hasattr(self.model, "predict_proba"):
             probs = self.model.predict_proba(X)[0]
-            probs_dict = dict(zip(self.model.classes_,probs))
-            
-        return preds[0],probs_dict
+            probs_dict = dict(zip(self.model.classes_, probs))
+
+        return preds[0], probs_dict

@@ -1,9 +1,34 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "project"
+name = "diabetes-health-indicator-prediction"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Machine learning model for predicting diabetes health indicators"
+readme = "Diabetes Health Indicator Prediction.md"
+license = {text = "MIT"}
 requires-python = ">=3.10"
+authors = [
+    {name = "Ayush Chhipa", email = "ayushchhipa18@gmail.com"},
+]
+maintainers = [
+    {name = "Kartikey Chhipa", email = "chhipa.kartikey@gmail.com"},
+]
+keywords = ["machine-learning", "diabetes", "prediction", "healthcare", "fastapi", "streamlit"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Healthcare Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
 dependencies = [
     "fastapi>=0.121.3",
     "ipykernel>=7.1.0",
@@ -13,13 +38,51 @@ dependencies = [
     "numpy>=2.2.6",
     "pandas>=2.3.3",
     "pydantic>=2.12.4",
-    "pytest>=9.0.1",
     "scikit-learn>=1.7.2",
     "seaborn>=0.13.2",
-    "sphinx>=8.1.3",
     "streamlit>=1.52.1",
-    "uvicorn>=0.38.0",
-    "uvicorn[standard]",
+    "uvicorn[standard]>=0.38.0",
 ]
-[tool.pytest.ini_options]
-pythonpath = ["."]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.1",
+    "ruff>=0.9.2",
+    "sphinx>=8.1.3",
+]
+docs = [
+    "sphinx>=8.1.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/diabetes-health-indicator-prediction"
+Repository = "https://github.com/yourusername/diabetes-health-indicator-prediction.git"
+Issues = "https://github.com/yourusername/diabetes-health-indicator-prediction/issues"
+Documentation = "https://diabetes-health-indicator-prediction.readthedocs.io/"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long, handled by black
+    "B008", # do not perform function calls in argument defaults
+    "C901", # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/**/*" = ["B011"] # assert false
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "app"]
