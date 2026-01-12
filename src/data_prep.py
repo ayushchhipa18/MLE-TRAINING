@@ -69,7 +69,9 @@ def run_prep(data_path, target_col="Diabetes_012"):
     print("Feature columns:", X.columns.tolist())
 
     # Split the data into train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
     print("Shapes-> X_train:", X_train.shape, "X_test:", X_test.shape)
 
     # Fit the preprocessor on training data only
@@ -112,7 +114,9 @@ def build_preprocessor(numerical_cols, categorical_cols=None):
 
     # Categorical columns
     if categorical_cols:
-        cat_transformer = Pipeline(steps=[("onehot", OneHotEncoder(handle_unknown="ignore"))])
+        cat_transformer = Pipeline(
+            steps=[("onehot", OneHotEncoder(handle_unknown="ignore"))]
+        )
         transformers.append(("cat", cat_transformer, categorical_cols))
 
     preprocessor = ColumnTransformer(transformers=transformers)

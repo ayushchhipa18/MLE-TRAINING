@@ -1,14 +1,13 @@
-import streamlit as  st
+import streamlit as st
 import requests
 import os
+
 # FastAPI endpoint
-API_URL = os.getenv(
-    "API_URL",
-    "http://174.129.158.91:8000/predict")
+API_URL = os.getenv("API_URL", "http://174.129.158.91:8000/predict")
 
 print("API_URL USED BY STREAMLIT =", API_URL)
 
-st.set_page_config(page_title="Diabetes Prediction App",layout="centered")
+st.set_page_config(page_title="Diabetes Prediction App", layout="centered")
 
 st.title("Diabetes Prediction App")
 st.write("Enter health indicators to predict diabetes status")
@@ -43,44 +42,40 @@ with st.form("prediction_form"):
 
 if submit:
     payload = {
-    "HighBP": HighBP,
-    "HighChol": HighChol,
-    "CholCheck": 1,
-    "BMI": BMI,
-    "Smoker": Smoker,
-    "Stroke": Stroke,
-    "HeartDiseaseorAttack": HeartDiseaseorAttack,
-    "PhysActivity": PhysActivity,
-    "Fruits": 1,
-    "Veggies": 1,
-    "HvyAlcoholConsump": 0,
-    "AnyHealthcare": 1,
-    "NoDocbcCost": 0,
-    "GenHlth": GenHlth,
-    "MentHlth": 5,
-    "PhysHlth": 5,
-    "DiffWalk": 0,
-    "Sex": 1,
-    "Age": Age,
-    "Education": 4,
-    "Income": Income
-}
+        "HighBP": HighBP,
+        "HighChol": HighChol,
+        "CholCheck": 1,
+        "BMI": BMI,
+        "Smoker": Smoker,
+        "Stroke": Stroke,
+        "HeartDiseaseorAttack": HeartDiseaseorAttack,
+        "PhysActivity": PhysActivity,
+        "Fruits": 1,
+        "Veggies": 1,
+        "HvyAlcoholConsump": 0,
+        "AnyHealthcare": 1,
+        "NoDocbcCost": 0,
+        "GenHlth": GenHlth,
+        "MentHlth": 5,
+        "PhysHlth": 5,
+        "DiffWalk": 0,
+        "Sex": 1,
+        "Age": Age,
+        "Education": 4,
+        "Income": Income,
+    }
 
-    
-    
-    try :
-        
-        response = requests.post(API_URL,json=payload)
+    try:
+        response = requests.post(API_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-        
+
         st.success(f" Prediction: **{result['predicted_class']}**")
-        
+
         st.subheader("Class Probabilities")
         for k, v in result["probabilities"].items():
             st.write(f"{k}: {v:2f}")
-            
+
     except Exception as e:
         st.error("Server error")
         st.exception(e)
-        

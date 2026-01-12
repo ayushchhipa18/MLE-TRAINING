@@ -7,7 +7,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score, f1_score, confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    accuracy_score,
+    f1_score,
+    confusion_matrix,
+)
 from sklearn.model_selection import train_test_split, cross_val_score
 import mlflow
 import mlflow.sklearn as mlflow_sklearn
@@ -92,7 +97,12 @@ def main(args):
         if args.cv and args.cv > 1:
             logger.info("Running %d-fold cross validation", args.cv)
             cv_score = cross_val_score(
-                model, X_train_transformed, y_train, cv=args.cv, scoring="f1_weighted", n_jobs=-1
+                model,
+                X_train_transformed,
+                y_train,
+                cv=args.cv,
+                scoring="f1_weighted",
+                n_jobs=-1,
             )
             logger.info("CV scores: %s", np.round(cv_score, 4).tolist())
             logger.info("CV mean f1_weighted: %.4f", np.mean(cv_score))
@@ -108,7 +118,9 @@ def main(args):
             y_pred = model.predict(X_val_transformed)
             acc = accuracy_score(y_val, y_pred)
             logger.info("Validation accuracy: %.4f", acc)
-            logger.info("Classification report:\n%s", classification_report(y_val, y_pred))
+            logger.info(
+                "Classification report:\n%s", classification_report(y_val, y_pred)
+            )
 
             # Weighted F1-score
             f1 = f1_score(y_val, y_pred, average="weighted")
@@ -126,7 +138,9 @@ def main(args):
             plt.savefig(cm_path, bbox_inches="tight")
             plt.close()
             mlflow.log_artifact(cm_path)
-            logger.info("confusion matrix saved and logged to MLflow as artifact: %s", cm_path)
+            logger.info(
+                "confusion matrix saved and logged to MLflow as artifact: %s", cm_path
+            )
         else:
             logger.info("No validation set to evaluate")
 
@@ -163,17 +177,28 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train baseline model script")
-    parser.add_argument("--train-csv", required=True, help="Path to processed train CSV")
-    parser.add_argument("--preprocessor", required=True, help="Path to preprocessor .pkl (joblib)")
-    parser.add_argument("--output", required=True, help="Patht to save trained model(.pkl)")
+    parser.add_argument(
+        "--train-csv", required=True, help="Path to processed train CSV"
+    )
+    parser.add_argument(
+        "--preprocessor", required=True, help="Path to preprocessor .pkl (joblib)"
+    )
+    parser.add_argument(
+        "--output", required=True, help="Patht to save trained model(.pkl)"
+    )
     parser.add_argument("--target", required=True, help="Name of target column in CSV")
     parser.add_argument(
-        "--test-size", type=float, default=0.2, help="Validation split fraction (0 to disable)"
+        "--test-size",
+        type=float,
+        default=0.2,
+        help="Validation split fraction (0 to disable)",
     )
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-estimators", type=int, default=200)
     parser.add_argument("--max-depth", type=int, default=10)
-    parser.add_argument("--cv", type=int, default=3, help="Number of CV folds (0 or 1 to disable)")
+    parser.add_argument(
+        "--cv", type=int, default=3, help="Number of CV folds (0 or 1 to disable)"
+    )
     parser.add_argument("--stratify", action="store_true", help="Use stratified split")
     parser.add_argument(
         "--save-with-preprocessor",
